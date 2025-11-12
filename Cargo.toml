@@ -24,6 +24,13 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 ethers = { version = "2.0", features = ["ws"] }
+
+solana-client = "3.0.10"
+solana-sdk = "3.0.0"
+solana-transaction-status = "3.0.10"
+
+subxt = "0.44.0"
+
 async-stream = "0.3"
 
 [dev-dependencies]
