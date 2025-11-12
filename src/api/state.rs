@@ -1,4 +1,12 @@
-use crate::chains::{bitcoin::BitcoinClient, Chain, ChainClient};
+use crate::chains::{
+    bitcoin::BitcoinClient,
+    ethereum::EthereumClient,
+    cardano::{CardanoClient, CardanoNetwork},
+    solana::SolanaClient,
+    polkadot::PolkadotClient,
+    Chain,
+    ChainClient,
+};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -8,17 +16,58 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         let mut clients: HashMap<Chain, Arc<dyn ChainClient>> = HashMap::new();
         
-        // Initialize Bitcoin client
-        let bitcoin_client = BitcoinClient::new(
-            std::env::var("BITCOIN_RPC_URL")
-                .unwrap_or_else(|_| "http://localhost:8332".to_string())
-        );
+        if let Ok(rpc_url) = std::env::var("BITCOIN_RPC_URL") {
+            let client = BitcoinClient::new(rpc_url);
+            clients.insert(Chain::Bitcoin, Arc::new(client));
+            tracing::info!("Initialized Bitcoin client");
+        }
+
+        if let Ok(ws_url) = std::env::var("ETHEREUM_WS_URL") {
+            match EthereumClient::new(ws_url).await {
+                Ok(client) => {
+                    clients.insert(Chain::Ethereum, Arc::new(client));
+                    tracing::info!("Initialized Ethereum client");
+                }
+                Err(e) => {
+                    tracing::error!("Failed to initialize Ethereum client: {}", e);
+                }
+            }
+        }
+
+        if let Ok(project_id) = std::env::var("CARDANO_PROJECT_ID") {
+            let network = std::env::var("CARDANO_NETWORK")
+                .unwrap_or_else(|_| "preview".to_string());
+
+            let network = match network.as_str() {
+                "mainnet" => CardanoNetwork::Mainnet,
+                "preprod" => CardanoNetwork::Preprod,
+                _ => CardanoNetwork::Preview,
+            };
+
+            let client = CardanoClient::new(network, project_id);
+            clients.insert(Chain::Cardano, Arc::new(client));
+            tracing::info!("Initialized Cardano client");
+        }
+
+        if let Ok(rpc_url) = std::env::var("SOLANA_RPC_URL") {
+            let client = SolanaClient::new(rpc_url);
+            clients.insert(Chain::Solana, Arc::new(client));
+            tracing::info!("Initialized Solana client");
+        }
+
+        if let Ok(rpc_url) = std::env::var("POLKADOT_RPC_URL") {
+            let client = PolkadotClient::new(rpc_url);
+            clients.insert(Chain::Polkadot, Arc::new(client));
+            tracing::info!("Initialized Polkadot client");
+        }
+
+        if clients.is_empty() {
+            tracing::warn!("No chain clients configured. Please set environment variables for at least one chain.");
+        }
         
-        clients.insert(Chain::Bitcoin, Arc::new(bitcoin_client));
-        
-        Self { clients }
+        Ok(Self {clients})
     }
 }
