@@ -1,11 +1,12 @@
 use super::{Block, Chain, ChainClient, ChainMetrics};
 use crate::Result;
 use async_trait::async_trait;
-use futures::stream::{self, Stream, StreamExt};
-use serde::{Deserialize, Serialize};
+use futures::stream::{self, Stream};
+use serde::Deserialize;
 use std::time::Duration;
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct PolkadotBlock {
     number: String,
     hash: String,
@@ -15,6 +16,7 @@ struct PolkadotBlock {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct PolkadotHeader {
     number: String,
     #[serde(rename = "parentHash")]

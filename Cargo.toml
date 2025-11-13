@@ -1,7 +1,7 @@
 [package]
 name = "chain-monitor"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 tokio = { version = "1.40", features = ["full"] }
@@ -28,6 +28,7 @@ ethers = { version = "2.0", features = ["ws"] }
 solana-client = "3.0.10"
 solana-sdk = "3.0.0"
 solana-transaction-status = "3.0.10"
+solana-commitment-config = "3.0.0"
 
 subxt = "0.44.0"
 

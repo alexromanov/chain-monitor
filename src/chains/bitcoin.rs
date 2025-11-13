@@ -1,7 +1,7 @@
 use super::{Block, Chain, ChainMetrics, ChainClient};
 use crate::Result;
 use async_trait::async_trait;
-use futures::stream;
+use futures::stream::{self, Stream};
 use serde_json::json;
 
 pub struct BitcoinClient {
@@ -73,10 +73,10 @@ impl ChainClient for BitcoinClient {
         })
     }
 
-    fn subscribe_blocks(&self) -> super::BlockStream {
+    fn subscribe_blocks(&self) -> impl Stream<Item = Result<Block>> + Send {
         let client = self.clone();
         
-        Box::pin(stream::unfold((), move |_| {
+        stream::unfold((), move |_| {
             let client = client.clone();
             async move {
                 tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
@@ -85,7 +85,7 @@ impl ChainClient for BitcoinClient {
                     Err(e) => Some((Err(e), ())),
                 }
             }
-        }))
+        })
     }
 
     async fn get_metrics(&self) -> Result<ChainMetrics> {

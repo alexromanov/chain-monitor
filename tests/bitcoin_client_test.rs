@@ -2,7 +2,7 @@ use chain_monitor::chains::{bitcoin::BitcoinClient, Chain, ChainClient};
 
 #[tokio::test]
 async fn test_bitcoint_client_creation() {
-    let client = BitcoinClient::new("http://localhost:8332".to_string());
+    let _client = BitcoinClient::new("http://localhost:8332".to_string());
     assert!(true);
 }
 

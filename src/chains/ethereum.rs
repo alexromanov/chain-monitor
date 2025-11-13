@@ -1,4 +1,4 @@
-use super::{Block, Chain, ChainClient, ChainMetrics, Transaction};
+use super::{Block, Chain, ChainClient, ChainMetrics};
 use crate::Result;
 use async_trait::async_trait;
 use ethers::{

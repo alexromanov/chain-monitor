@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
     
     tracing::info!("Starting Multi-Chain Monitor API...");
     
-    let state = Arc::new(AppState::new().await?);
+    let state = Arc::new(AppState::new().await);
     tracing::info!("Initialized {} chain clients", state.clients.len());
     
     start_server(state, "127.0.0.1:3000").await?;

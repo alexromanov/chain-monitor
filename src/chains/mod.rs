@@ -19,6 +19,63 @@ pub trait ChainClient: Send + Sync {
     async fn get_metrics(&self) -> Result<ChainMetrics>;
 }
 
+/// Enum wrapper for different chain clients (to enable dynamic dispatch)
+#[derive(Clone)]
+pub enum AnyChainClient {
+    Bitcoin(bitcoin::BitcoinClient),
+    Ethereum(ethereum::EthereumClient),
+    Cardano(cardano::CardanoClient),
+    Solana(solana::SolanaClient),
+    Polkadot(polkadot::PolkadotClient),
+}
+
+#[async_trait]
+impl ChainClient for AnyChainClient {
+    async fn get_latest_block(&self) -> Result<Block> {
+        match self {
+            AnyChainClient::Bitcoin(c) => c.get_latest_block().await,
+            AnyChainClient::Ethereum(c) => c.get_latest_block().await,
+            AnyChainClient::Cardano(c) => c.get_latest_block().await,
+            AnyChainClient::Solana(c) => c.get_latest_block().await,
+            AnyChainClient::Polkadot(c) => c.get_latest_block().await,
+        }
+    }
+
+    async fn get_block_by_height(&self, height: u64) -> Result<Block> {
+        match self {
+            AnyChainClient::Bitcoin(c) => c.get_block_by_height(height).await,
+            AnyChainClient::Ethereum(c) => c.get_block_by_height(height).await,
+            AnyChainClient::Cardano(c) => c.get_block_by_height(height).await,
+            AnyChainClient::Solana(c) => c.get_block_by_height(height).await,
+            AnyChainClient::Polkadot(c) => c.get_block_by_height(height).await,
+        }
+    }
+
+    fn subscribe_blocks(&self) -> impl Stream<Item = Result<Block>> + Send {
+        use futures::stream::BoxStream;
+        
+        let stream: BoxStream<Result<Block>> = match self {
+            AnyChainClient::Bitcoin(c) => Box::pin(c.subscribe_blocks()),
+            AnyChainClient::Ethereum(c) => Box::pin(c.subscribe_blocks()),
+            AnyChainClient::Cardano(c) => Box::pin(c.subscribe_blocks()),
+            AnyChainClient::Solana(c) => Box::pin(c.subscribe_blocks()),
+            AnyChainClient::Polkadot(c) => Box::pin(c.subscribe_blocks()),
+        };
+        
+        stream
+    }
+
+    async fn get_metrics(&self) -> Result<ChainMetrics> {
+        match self {
+            AnyChainClient::Bitcoin(c) => c.get_metrics().await,
+            AnyChainClient::Ethereum(c) => c.get_metrics().await,
+            AnyChainClient::Cardano(c) => c.get_metrics().await,
+            AnyChainClient::Solana(c) => c.get_metrics().await,
+            AnyChainClient::Polkadot(c) => c.get_metrics().await,
+        }
+    }
+}
+
 /// Chain identifier
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Chain {

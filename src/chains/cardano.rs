@@ -2,10 +2,11 @@ use super::{Block, Chain, ChainClient, ChainMetrics};
 use crate::Result;
 use async_trait::async_trait;
 use futures::stream::{self, Stream};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::time::Duration;
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct BlockfrostBlock {
     height: Option<u64>,
     hash: String,
@@ -18,18 +19,21 @@ struct BlockfrostBlock {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct BlockfrostNetwork {
     stake: NetworkStake,
     supply: NetworkSupply,
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct NetworkStake {
     live: String,
     active: String,
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct NetworkSupply {
     max: String,
     circulating: String,
@@ -45,7 +49,7 @@ impl CardanoClient {
     pub fn new(network: CardanoNetwork, project_id: String) -> Self {
         let api_url = match network {
             CardanoNetwork::Mainnet => "https://cardano-mainnet.blockfrost.io/api/v0",
-            CardanoNetwork::Preprdo => "https://cardano-preprod.blockfrost.io/api/v0",
+            CardanoNetwork::Preprod => "https://cardano-preprod.blockfrost.io/api/v0",
             CardanoNetwork::Preview => "https://cardano-preview.blockfrost.io/api/v0",
         };
 
@@ -57,19 +61,19 @@ impl CardanoClient {
     }
 
     async fn fetch<T: for<'de> Deserialize<'de>>(&self, endpoint: &str) -> Result<T> {
-        let url = format("{}{}", self.api_url, endpoint);
+        let url = format!("{}{}", self.api_url, endpoint);
 
         let response = self.client.get(&url).header("project_id", &self.project_id).send().await.map_err(|e| crate::Error::Chain(format!("Blockfrost API request failed: {}", e)))?;
 
         if !response.status().is_success() {
-            return Err(crate::Error::Chain(format!("Blockfrost API error: {} - {}", response.status(), response.text().await.unwrap_or_default)))
+            return Err(crate::Error::Chain(format!("Blockfrost API error: {} - {}", response.status(), response.text().await.unwrap_or_default())))
         }
 
-        response.json().await.map_err(|e| crate::Error::Chain(format!("Failed to parse response: {}", e )));
+        response.json().await.map_err(|e| crate::Error::Chain(format!("Failed to parse response: {}", e)))
     }
 
     async fn get_block_by_identifier(&self, identifier: &str) -> Result<Block> {
-        let block: BlockfrostBlock = self.fetch("/blocks/{}", identifier).await?;
+        let block: BlockfrostBlock = self.fetch(&format!("/blocks/{}", identifier)).await?;
 
         Ok(Block {
             chain: Chain::Cardano,
@@ -94,7 +98,7 @@ impl ChainClient for CardanoClient {
     
     fn subscribe_blocks(&self) -> impl Stream<Item = Result<Block>> + Send {
         let client = self.clone();
-        let mut last_hash = String::new();
+        let last_hash = String::new();
         
         stream::unfold(last_hash, move |mut prev_hash| {
             let client = client.clone();

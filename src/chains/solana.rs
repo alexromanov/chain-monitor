@@ -1,12 +1,12 @@
 use super::{Block, Chain, ChainClient, ChainMetrics};
 use crate::Result;
 use async_trait::async_trait;
-use futures::stream::{self, Stream};
+use futures::stream::{self, Stream, StreamExt};
 use solana_client::{
     nonblocking::rpc_client::RpcClient,
     rpc_config::RpcBlockConfig,
 };
-use solana_sdk::commitment_config::CommitmentConfig;
+use solana_commitment_config::CommitmentConfig;
 use solana_transaction_status::{UiTransactionEncoding, TransactionDetails};
 use std::sync::Arc;
 use std::time::Duration;
@@ -46,7 +46,7 @@ impl SolanaClient {
         Ok(Block {
             chain: Chain::Solana,
             height: slot,
-            hash: blockhash,
+            hash: block_hash,
             timestamp: block_time,
             transaction_count,
             size: 0,
@@ -67,7 +67,7 @@ impl ChainClient for SolanaClient {
 
     fn subscribe_blocks(&self) -> impl Stream<Item = Result<Block>> + Send {
         let client = self.client.clone();
-        let mut last_slot = 0u64;
+        let last_slot = 0u64;
 
         stream::unfold(last_slot, move | mut prev_slot| {
             let client = client.clone();
@@ -126,12 +126,12 @@ impl ChainClient for SolanaClient {
     }
 
     async fn get_metrics(&self) -> Result<ChainMetrics> {
-        let samples = self.client.get_recent_performance_samples()
+        let samples = self.client.get_recent_performance_samples(Some(5))
             .await
             .map_err(|e| crate::Error::Chain(format!("Failed to get performance samples: {}", e)))?;
 
         let avg_tps = if !samples.is_empty() {
-            let total_tps: u64 = samples.iter().map(|s| s.num_transactions / s.sample_period_secs).sum();
+            let total_tps: u64 = samples.iter().map(|s| s.num_transactions / s.sample_period_secs as u64).sum();
             (total_tps as f64) / (samples.len() as f64)
         } else {
             0.0
