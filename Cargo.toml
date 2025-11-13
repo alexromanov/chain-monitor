@@ -34,6 +34,8 @@ subxt = "0.44.0"
 async-stream = "0.3"
 chrono = "0.4"
 
+dotenv = "0.15"
+
 [dev-dependencies]
 proptest = "1.5"
 tokio-test = "0.4"

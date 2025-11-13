@@ -15,6 +15,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/health", get(routes::health))
         .route("/api/chains", get(routes::list_chains))
         .route("/api/chains/:chain/latest", get(routes::get_latest_block))
+        .route("/api/chains/:chain/metrics", get(routes::get_chain_metrics))
+        .route("/api/chains/:chain/blocks/:height", get(routes::get_block_by_height))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
 }
