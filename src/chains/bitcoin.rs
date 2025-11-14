@@ -59,7 +59,6 @@ impl ChainClient for BitcoinClient {
             .ok_or_else(|| crate::Error::Chain("Invalid block hash".to_string()))?
             .to_string();
         
-        // Get block details
         let block_data = self.call_rpc("getblock", json!([block_hash, 1]))
             .await?;
 

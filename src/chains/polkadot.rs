@@ -151,7 +151,7 @@ impl ChainClient for PolkadotClient {
         let prev = self.get_block_by_height(latest.height - 1).await?;
         
         let block_time = (latest.timestamp - prev.timestamp).abs() as f64;
-        let block_time = if block_time > 0.0 { block_time } else { 6.0 }; // Default to 6s
+        let block_time = if block_time > 0.0 { block_time } else { 6.0 };
         
         let tps = latest.transaction_count as f64 / block_time;
         

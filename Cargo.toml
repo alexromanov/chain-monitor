@@ -3,8 +3,16 @@ name = "chain-monitor"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "chain-monitor-api"
+path = "src/main.rs"
+
+[[bin]]
+name = "chain-monitor-tui"
+path = "src/bin/tui.rs"
+
 [dependencies]
-tokio = { version = "1.40", features = ["full"] }
+tokio = { version = "1.40", features = ["full", "sync"] }
 futures = "0.3"
 reqwest = { version = "0.12.13", features = ["json"] }
 
@@ -36,6 +44,14 @@ async-stream = "0.3"
 chrono = "0.4"
 
 dotenv = "0.15"
+
+# TUI
+ratatui = "0.29.0"
+crossterm = "0.29.0"
+
+# WebSocket client for TUI
+tokio-tungstenite = "0.28.0"
+futures-util = "0.3"
 
 [dev-dependencies]
 proptest = "1.5"

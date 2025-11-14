@@ -88,7 +88,6 @@ impl ChainClient for EthereumClient {
         let block_number = self.provider.get_block_number().await
             .map_err(|e| crate::Error::Chain(format!("Failed to get metrics: {}", e)))?;
         
-        // Get last 2 blocks to calculate block time
         let latest_block = self.provider.get_block(block_number).await
             .map_err(|e| crate::Error::Chain(e.to_string()))?
             .ok_or_else(|| crate::Error::Chain("Block not found".to_string()))?;
@@ -99,13 +98,11 @@ impl ChainClient for EthereumClient {
         
         let block_time = (latest_block.timestamp - prev_block.timestamp).as_u64() as f64;
         
-        // Get pending transaction count
         let pending_tx_count = match self.provider.txpool_content().await {
             Ok(content) => content.pending.len() + content.queued.len(),
-            Err(_) => 0, // Fallback if txpool is not available
+            Err(_) => 0,
         };
         
-        // Calculate TPS based on recent blocks
         let tx_count = latest_block.transactions.len();
         let tps = if block_time > 0.0 {
             tx_count as f64 / block_time
@@ -118,7 +115,7 @@ impl ChainClient for EthereumClient {
             tps,
             block_time,
             pending_transactions: pending_tx_count,
-            peer_count: 0, // Would need admin API access
+            peer_count: 0,
         })
     }
 }

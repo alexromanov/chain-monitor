@@ -19,7 +19,6 @@ pub trait ChainClient: Send + Sync {
     async fn get_metrics(&self) -> Result<ChainMetrics>;
 }
 
-/// Enum wrapper for different chain clients (to enable dynamic dispatch)
 #[derive(Clone)]
 pub enum AnyChainClient {
     Bitcoin(bitcoin::BitcoinClient),
@@ -76,7 +75,6 @@ impl ChainClient for AnyChainClient {
     }
 }
 
-/// Chain identifier
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Chain {
     Bitcoin,
